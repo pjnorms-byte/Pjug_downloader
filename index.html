@@ -115,6 +115,13 @@ select{-webkit-appearance:none;appearance:none;background-color:var(--bg);backgr
 .panel:focus{outline:none}
 .card{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;font:inherit;cursor:pointer;transition:transform .2s,border-color .2s;animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card{position:relative;overflow:hidden;min-height:220px}
+.cover-art{height:88px;margin:-20px -20px 8px;display:grid;place-items:center;font-size:2.7rem;background:linear-gradient(135deg,var(--cover-a),var(--cover-b))}
+.card-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:.78rem}
+.card-rating{border:0;background:transparent;color:var(--accent);padding:3px 0;cursor:pointer;font:inherit;font-weight:800}
+.card-review{font-size:.78rem;color:var(--muted);min-height:1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gamepad-status,.daily-challenge{font-size:.85rem;color:var(--muted);margin:8px 0 12px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 .cn{font-weight:800;font-size:1.3rem;letter-spacing:-.03em}
 /* game titles: keep long names inside their cards */
 .cn{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -261,7 +268,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button class="chip" data-view="recent" aria-pressed="false">Recently played</button>
     </div>
     <div class="hub-actions">
-      <label class="sort-label" for="game-category">Category</label><select id="game-category" aria-label="Filter games"><option value="all">All games</option><option value="original">PJUG originals</option><option value="external">Pjug files</option></select>
+      <label class="sort-label" for="game-category">Category</label><select id="game-category" aria-label="Filter games"><option value="all">All games</option><option value="original">PJUG originals</option><option value="external">Pjug files</option></select><label class="sort-label" for="game-genre">Genre</label><select id="game-genre" aria-label="Filter by genre"><option value="all">All genres</option><option value="arcade">Arcade</option><option value="puzzle">Puzzle</option><option value="classic">Classics</option><option value="other">Other</option></select>
       <label class="sort-label" for="game-sort">Sort</label>
       <select id="game-sort" aria-label="Sort games">
         <option value="default">Default</option>
@@ -270,14 +277,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </select>
       <button class="btn" id="random-game" type="button">Random game</button>
     </div>
-    <p class="hub-note" id="hub-note" aria-live="polite"></p>
+    <p class="hub-note" id="hub-note" aria-live="polite"></p><p class="gamepad-status" id="gamepad-status" aria-live="polite">Controller navigation: connect a gamepad and press a button to start.</p>
   </div>
 
   <p class="empty" id="empty">No games yet. Check back soon.</p>
   <div id="games"></div>
 
   <section class="platform-section featured" id="featured-banner" aria-label="Featured daily game">
-    <div><div class="eyebrow">PJUG daily pick</div><h2 id="daily-title">Today's featured game</h2><p id="daily-desc">A new game to discover every day.</p><button class="btn" id="daily-play" type="button">Play today's game</button></div>
+    <div><div class="eyebrow">PJUG daily challenge</div><p class="daily-challenge" id="daily-challenge">Mission: play today’s featured game.</p><h2 id="daily-title">Today's featured game</h2><p id="daily-desc">A new game to discover every day.</p><button class="btn" id="daily-play" type="button">Play today's game</button></div>
     <div class="featured-mark" aria-hidden="true">✦</div>
   </section>
   <section class="platform-section" id="player-hub" aria-label="Player hub">
@@ -303,7 +310,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="platform-card">
         <h3>Community ratings</h3><p>Rate a game from one to five stars. Ratings on this version are saved locally in your browser, not shared across visitors.</p>
         <label class="mini-label" for="rating-game">Choose a game</label><select id="rating-game"></select>
-        <div class="rating-row" id="rating-stars" role="group" aria-label="Rate selected game"></div><div class="mini-label" id="rating-summary"></div>
+        <div class="rating-row" id="rating-stars" role="group" aria-label="Rate selected game"></div><div class="mini-label" id="rating-summary"></div><label class="mini-label" for="review-text">Short review (saved on this device)</label><textarea id="review-text" rows="2" maxlength="240" placeholder="What did you think?"></textarea><div class="platform-actions"><button class="btn" id="save-review" type="button">Save review</button><button class="chip" id="clear-review" type="button">Clear review</button></div><div class="mini-label" id="review-status" aria-live="polite"></div>
       </div>
       <div class="platform-card">
         <h3>Game request voting</h3><p>Suggest a game and vote for requests. This demo list is local to this browser; shared community voting needs a backend.</p>
@@ -497,6 +504,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   document.querySelectorAll('[data-view]').forEach(function(b){b.addEventListener('click',function(){gameView=this.getAttribute('data-view');renderGames()})});
   $('game-sort').addEventListener('change',renderGames);
   $('game-category').addEventListener('change',renderGames);
+  $('game-genre').addEventListener('change',renderGames);
   $('random-game').addEventListener('click',function(){
     var q=$('search').value.trim().toLowerCase(),pool=GAMES.filter(function(g){return !q||g.name.toLowerCase().indexOf(q)>=0});
     if(!pool.length){$('hub-note').textContent='No games match your search.';return}
@@ -506,6 +514,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     var t=e.target&&e.target.tagName;
     if(e.key==="/"&&!recording&&S.keys.indexOf("/")<0&&t!=="INPUT"&&t!=="SELECT"&&!$("overlay").classList.contains("open")){e.preventDefault();$("search").focus()}
   });
+  (function controllerNavigation(){var lastMove=0,prevA=false,prevB=false,started=false;
+    window.addEventListener('gamepadconnected',function(e){started=true;$('gamepad-status').textContent='Controller connected: '+e.gamepad.id+' · D-pad/stick to move, A select, B back.'});window.addEventListener('gamepaddisconnected',function(){$('gamepad-status').textContent='Controller disconnected. Keyboard and mouse still work.'});
+    function tick(t){var gps=[];try{gps=navigator.getGamepads?navigator.getGamepads():[]}catch(e){}var gp=null;for(var i=0;i<gps.length;i++)if(gps[i]&&gps[i].connected){gp=gps[i];break}if(gp){if(!started){started=true;$('gamepad-status').textContent='Controller ready · D-pad/stick to move, A select, B back.'}var x=gp.axes&&gp.axes.length?gp.axes[0]:0,y=gp.axes&&gp.axes.length>1?gp.axes[1]:0,bt=gp.buttons||[],left=bt[14]&&bt[14].pressed,right=bt[15]&&bt[15].pressed,up=bt[12]&&bt[12].pressed,down=bt[13]&&bt[13].pressed;if(t-lastMove>190&&(Math.abs(x)>.55||Math.abs(y)>.55||left||right||up||down)){var els=Array.prototype.slice.call(document.querySelectorAll('button:not(:disabled),a[href],select,input,textarea')).filter(function(el){return el.getClientRects().length&&el.tabIndex>=0});var at=els.indexOf(document.activeElement);if(at<0)at=0;var dir=(left||x<-.55||up||y<-.55)?-1:1;at=(at+dir+els.length)%els.length;if(els[at])els[at].focus();lastMove=t}var a=!!(bt[0]&&bt[0].pressed),b=!!(bt[1]&&bt[1].pressed);if(a&&!prevA&&document.activeElement&&document.activeElement.click)document.activeElement.click();if(b&&!prevB&&document.body.classList.contains('playing'))stopPlay();prevA=a;prevB=b}else{prevA=false;prevB=false}requestAnimationFrame(tick)}requestAnimationFrame(tick)})();
   applyCloak();
 
   document.addEventListener("keydown",function(e){
@@ -595,7 +606,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   var cv=$('game'),c2=cv.getContext('2d'),raf=0,cur=null,curGame=null,keys={},clicks=[],presses=[],ptr={x:null,y:null},sw=null,sd=null;
   function colors(){var s=getComputedStyle(document.documentElement),g=function(n){return s.getPropertyValue(n).trim()};return{bg:g('--bg'),surface:g('--surface'),line:g('--line'),text:g('--text'),muted:g('--muted'),accent:g('--accent')}}
   var openG={};
-  var gameView='all',favorites=[],recent=[];
+  var gameView='all',favorites=[],recent=[],ratingsReviews={};
+  try{ratingsReviews=JSON.parse(localStorage.getItem('pjug:reviews')||'{}');if(!ratingsReviews||typeof ratingsReviews!=='object')ratingsReviews={}}catch(e){ratingsReviews={}}
   try{favorites=JSON.parse(localStorage.getItem('pjug:favorites')||'[]');if(!Array.isArray(favorites))favorites=[]}catch(e){favorites=[]}
   try{recent=JSON.parse(localStorage.getItem('pjug:recent')||'[]');if(!Array.isArray(recent))recent=[]}catch(e){recent=[]}
   function saveHub(){try{localStorage.setItem('pjug:favorites',JSON.stringify(favorites));localStorage.setItem('pjug:recent',JSON.stringify(recent))}catch(e){}}
@@ -611,14 +623,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     var groups=[],map={},pool=GAMES.slice();
     if(gameView==='favorites')pool=pool.filter(function(g){return favorites.indexOf(g.id)>=0});
     if(gameView==='recent')pool=recent.map(function(id){return GAMES.find(function(g){return g.id===id})}).filter(Boolean);
-    var category=$('game-category').value;
+    var category=$('game-category').value,genre=$('game-genre').value;
     if(category==='original')pool=pool.filter(function(g){return !g.ext});
     if(category==='external')pool=pool.filter(function(g){return !!g.ext});
+    function genreOf(g){var z=(g.name+' '+(g.desc||'')).toLowerCase();if(/2048|memory|mine|puzzle|tile|match/.test(z))return 'puzzle';if(/snake|pong|breakout|flappy|tetris|arcade|runner|space|shooter/.test(z))return 'arcade';if(/chess|checkers|solitaire|tic.?tac|mahjong/.test(z))return 'classic';return 'other'}
+    if(genre!=='all')pool=pool.filter(function(g){return genreOf(g)===genre});
     var sort=$('game-sort').value;
     if(sort==='az')pool.sort(function(a,b){return a.name.localeCompare(b.name)});
     if(sort==='za')pool.sort(function(a,b){return b.name.localeCompare(a.name)});
     pool.forEach(function(g){
-      if(q&&g.name.toLowerCase().indexOf(q)<0&&String(g.desc||'').toLowerCase().indexOf(q)<0)return;
+      if(q&&g.name.toLowerCase().indexOf(q)<0&&String(g.desc||'').toLowerCase().indexOf(q)<0&&String(g.group||'').toLowerCase().indexOf(q)<0)return;
       var n=g.group||(g.ext?'Pjug files':'PJUG original');
       if(!map[n]){map[n]=[];groups.push(n)}
       map[n].push(g);
@@ -637,8 +651,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         if(!list.length){var hp=document.createElement('p');hp.className='how';hp.style.gridColumn='1/-1';hp.textContent='Games from the pjug-files folder in your repo show up here.';grid.appendChild(hp)}
         list.forEach(function(g){
           var b=document.createElement('button');b.className='card';
-          b.innerHTML='<span class="cn"></span><span class="cd"></span><span class="fav-btn" role="button" tabindex="0" aria-label="Toggle favorite" aria-pressed="false">★</span>';
-          b.firstChild.textContent=g.name;b.children[1].textContent=g.desc;
+          b.innerHTML='<span class="cover-art" aria-hidden="true"></span><span class="cn"></span><span class="cd"></span><span class="card-meta"><span class="card-genre"></span><button class="card-rating" type="button">☆ Rate</button></span><span class="card-review"></span><span class="fav-btn" role="button" tabindex="0" aria-label="Toggle favorite" aria-pressed="false">★</span>';
+          var palset=[['#3457d5','#a855f7','🎮'],['#047857','#34d399','🟩'],['#b45309','#fbbf24','⚡'],['#be185d','#fb7185','🕹️'],['#0369a1','#67e8f9','🚀'],['#6d28d9','#c4b5fd','✨']];var hash=0;for(var hi=0;hi<g.name.length;hi++)hash=(hash*31+g.name.charCodeAt(hi)|0);var pal=palset[Math.abs(hash)%palset.length],art=b.querySelector('.cover-art');art.style.setProperty('--cover-a',pal[0]);art.style.setProperty('--cover-b',pal[1]);art.textContent=pal[2];b.querySelector('.cn').textContent=g.name;b.querySelector('.cd').textContent=g.desc;var gn=genreOf(g);b.querySelector('.card-genre').textContent=gn.charAt(0).toUpperCase()+gn.slice(1);var rv=ratingsReviews[g.id]||{};b.querySelector('.card-rating').textContent=(ratings[g.id]?'★ '+ratings[g.id]+'/5':'☆ Rate')+(rv.text?' · Review':'');b.querySelector('.card-rating').onclick=function(ev){ev.stopPropagation();$('rating-game').value=g.id;renderRatingStars();$('review-text').value=(ratingsReviews[g.id]||{}).text||'';$('review-status').textContent='Editing review for '+g.name;$('player-hub').scrollIntoView({behavior:'smooth'})};b.querySelector('.card-review').textContent=rv.text?'“'+rv.text+'”':'';b.querySelector('.card-review').title=rv.text||'';
           var star=b.querySelector('.fav-btn'),isFav=favorites.indexOf(g.id)>=0;
           star.setAttribute('aria-pressed',String(isFav));star.setAttribute('aria-label',(isFav?'Remove from':'Add to')+' favorites: '+g.name);star.textContent=isFav?'★':'☆';
           function toggleFav(ev){ev.stopPropagation();var ix=favorites.indexOf(g.id);if(ix>=0)favorites.splice(ix,1);else favorites.push(g.id);saveHub();checkAchievements();renderGames()}
@@ -1012,9 +1026,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     ACHS.forEach(function(a){var b=document.createElement('div');b.className='achievement'+(achievements[a.id]?' unlocked':'');b.textContent=achievements[a.id]?a.name+' ✓':'🔒 Secret achievement';b.title=achievements[a.id]?a.hint:'Keep exploring to reveal this achievement.';box.appendChild(b)});
   }
   function renderDaily(){
-    if(!GAMES.length)return;var day=Math.floor(Date.now()/86400000),g=GAMES[(day%GAMES.length+GAMES.length)%GAMES.length];
+    if(!GAMES.length)return;var day=Math.floor(Date.now()/86400000),g=GAMES[(day%GAMES.length+GAMES.length)%GAMES.length],today=new Date().toDateString(),done=readLocal('pjug:dailyPlayed','')===today,streak=Number(readLocal('pjug:dailyStreak','0'))||0,last=readLocal('pjug:dailyLast','');
     $('daily-title').textContent=g.name;$('daily-desc').textContent=g.desc||'Try this game picked for today.';
-    $('daily-play').onclick=function(){writeLocal('pjug:dailyPlayed',new Date().toDateString());addXP(15);checkAchievements();play(g)};
+    $('daily-challenge').textContent=(done?'✓ Challenge complete — +15 XP earned.':'Mission: play today’s featured game to earn 15 bonus XP.')+' Current streak: '+streak+' day'+(streak===1?'':'s')+'.';$('daily-play').textContent=done?'Play daily game again':'Play challenge (+15 XP)';
+    $('daily-play').onclick=function(){if(!done){if(last!==today){var y=new Date();y.setDate(y.getDate()-1);streak=last===y.toDateString()?streak+1:1;writeLocal('pjug:dailyStreak',String(streak));writeLocal('pjug:dailyLast',today)}writeLocal('pjug:dailyPlayed',today);addXP(15);checkAchievements();renderDaily()}play(g)};
   }
   function renderRatingOptions(){
     var sel=$('rating-game'),previous=sel.value;sel.innerHTML='';
@@ -1027,6 +1042,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     $('rating-summary').textContent=ratings[id]?'Your rating: '+ratings[id]+' / 5':'Not rated yet';
   }
   $('rating-game').addEventListener('change',renderRatingStars);
+  $('save-review').addEventListener('click',function(){var id=$('rating-game').value,txt=$('review-text').value.trim().slice(0,240);if(!id){$('review-status').textContent='Choose a game first.';return}if(!txt){$('review-status').textContent='Write a short review first, or clear it.';return}ratingsReviews[id]={text:txt,date:new Date().toISOString()};try{localStorage.setItem('pjug:reviews',JSON.stringify(ratingsReviews))}catch(e){}$('review-status').textContent='Review saved on this device.';renderGames()});
+  $('clear-review').addEventListener('click',function(){var id=$('rating-game').value;delete ratingsReviews[id];try{localStorage.setItem('pjug:reviews',JSON.stringify(ratingsReviews))}catch(e){}$('review-text').value='';$('review-status').textContent='Review cleared on this device.';renderGames()});
   function renderRequests(){
     var box=$('request-list');box.innerHTML='';
     requests.sort(function(a,b){return b.votes-a.votes});
