@@ -131,6 +131,18 @@ body.playing main{display:none}
 #play h2{margin:0;font-size:1.4rem;letter-spacing:-.03em}
 #game{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;touch-action:none}
 .how{color:var(--muted);font-size:.9rem;margin-top:12px}
+
+#hub-tools{margin-top:18px;display:grid;gap:12px}
+.hub-tabs,.hub-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hub-actions select{width:auto;min-width:120px}
+.sort-label{font-size:.9rem;color:var(--muted)}
+.hub-note{margin:0;color:var(--muted);font-size:.85rem;min-height:1em}
+.card{position:relative;padding-right:48px}
+.fav-btn{position:absolute;right:12px;top:12px;width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--muted);font-size:17px;cursor:pointer}
+.fav-btn[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.fav-btn:hover{transform:scale(1.08)}
+@media(max-width:520px){.hub-actions{align-items:stretch}.hub-actions select{flex:1}.hub-actions .btn{width:100%}.hub-tabs .chip{padding:7px 10px;font-size:.82rem}}
+
 #games{margin-top:40px;display:flex;flex-direction:column;gap:12px}
 .grp-h{display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:16px 20px;font:inherit;font-weight:800;font-size:1.15rem;letter-spacing:-.02em;cursor:pointer;text-align:left;transition:border-color .2s}
 .grp-h:hover{border-color:var(--accent)}
@@ -165,6 +177,23 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <main>
   <h1>pjug</h1>
   <input id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
+  <div id="hub-tools" aria-label="Game library controls">
+    <div class="hub-tabs" role="group" aria-label="Game library view">
+      <button class="chip" data-view="all" aria-pressed="true">All games</button>
+      <button class="chip" data-view="favorites" aria-pressed="false">★ Favorites <span id="fav-count">0</span></button>
+      <button class="chip" data-view="recent" aria-pressed="false">Recently played</button>
+    </div>
+    <div class="hub-actions">
+      <label class="sort-label" for="game-sort">Sort</label>
+      <select id="game-sort" aria-label="Sort games">
+        <option value="default">Default</option>
+        <option value="az">Name A–Z</option>
+        <option value="za">Name Z–A</option>
+      </select>
+      <button class="btn" id="random-game" type="button">🎲 Random game</button>
+    </div>
+    <p class="hub-note" id="hub-note" aria-live="polite"></p>
+  </div>
   <p class="empty" id="empty">No games yet. Check back soon.</p>
   <div id="games"></div>
 <section id="music" aria-label="Music player" aria-hidden="true">
@@ -321,6 +350,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   }
   $("dust-toggle").onclick=function(){S.dust=!S.dust;save();renderMisc()};
   $("search").addEventListener("input",renderGames);
+  document.querySelectorAll('[data-view]').forEach(function(b){b.addEventListener('click',function(){gameView=this.getAttribute('data-view');renderGames()})});
+  $('game-sort').addEventListener('change',renderGames);
+  $('random-game').addEventListener('click',function(){
+    var q=$('search').value.trim().toLowerCase(),pool=GAMES.filter(function(g){return !q||g.name.toLowerCase().indexOf(q)>=0});
+    if(!pool.length){$('hub-note').textContent='No games match your search.';return}
+    play(pool[Math.random()*pool.length|0]);
+  });
   document.addEventListener("keydown",function(e){
     var t=e.target&&e.target.tagName;
     if(e.key==="/"&&!recording&&S.keys.indexOf("/")<0&&t!=="INPUT"&&t!=="SELECT"&&!$("overlay").classList.contains("open")){e.preventDefault();$("search").focus()}
@@ -389,10 +425,26 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   var cv=$('game'),c2=cv.getContext('2d'),raf=0,cur=null,curGame=null,keys={},clicks=[],presses=[],ptr={x:null,y:null},sw=null,sd=null;
   function colors(){var s=getComputedStyle(document.documentElement),g=function(n){return s.getPropertyValue(n).trim()};return{bg:g('--bg'),surface:g('--surface'),line:g('--line'),text:g('--text'),muted:g('--muted'),accent:g('--accent')}}
   var openG={};
+  var gameView='all',favorites=[],recent=[];
+  try{favorites=JSON.parse(localStorage.getItem('pjug:favorites')||'[]');if(!Array.isArray(favorites))favorites=[]}catch(e){favorites=[]}
+  try{recent=JSON.parse(localStorage.getItem('pjug:recent')||'[]');if(!Array.isArray(recent))recent=[]}catch(e){recent=[]}
+  function saveHub(){try{localStorage.setItem('pjug:favorites',JSON.stringify(favorites));localStorage.setItem('pjug:recent',JSON.stringify(recent))}catch(e){}}
+  function updateHubControls(){
+    $('fav-count').textContent=String(favorites.length);
+    document.querySelectorAll('[data-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-view')===gameView))});
+    var notes={all:'Your full game library.',favorites:'Your saved favorites on this device.',recent:'Your latest games on this device.'};
+    $('hub-note').textContent=notes[gameView]||'';
+  }
   function renderGames(){
     var q=$('search').value.trim().toLowerCase(),box=$('games');box.innerHTML='';
-    var groups=[],map={};
-    GAMES.forEach(function(g){
+    updateHubControls();
+    var groups=[],map={},pool=GAMES.slice();
+    if(gameView==='favorites')pool=pool.filter(function(g){return favorites.indexOf(g.id)>=0});
+    if(gameView==='recent')pool=recent.map(function(id){return GAMES.find(function(g){return g.id===id})}).filter(Boolean);
+    var sort=$('game-sort').value;
+    if(sort==='az')pool.sort(function(a,b){return a.name.localeCompare(b.name)});
+    if(sort==='za')pool.sort(function(a,b){return b.name.localeCompare(a.name)});
+    pool.forEach(function(g){
       if(q&&g.name.toLowerCase().indexOf(q)<0)return;
       var n=g.group||(g.ext?'Pjug files':'PJUG original');
       if(!map[n]){map[n]=[];groups.push(n)}
@@ -412,8 +464,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         if(!list.length){var hp=document.createElement('p');hp.className='how';hp.style.gridColumn='1/-1';hp.textContent='Games from the pjug-files folder in your repo show up here.';grid.appendChild(hp)}
         list.forEach(function(g){
           var b=document.createElement('button');b.className='card';
-          b.innerHTML='<span class="cn"></span><span class="cd"></span>';
-          b.firstChild.textContent=g.name;b.lastChild.textContent=g.desc;
+          b.innerHTML='<span class="cn"></span><span class="cd"></span><span class="fav-btn" role="button" tabindex="0" aria-label="Toggle favorite" aria-pressed="false">★</span>';
+          b.firstChild.textContent=g.name;b.children[1].textContent=g.desc;
+          var star=b.querySelector('.fav-btn'),isFav=favorites.indexOf(g.id)>=0;
+          star.setAttribute('aria-pressed',String(isFav));star.setAttribute('aria-label',(isFav?'Remove from':'Add to')+' favorites: '+g.name);star.textContent=isFav?'★':'☆';
+          function toggleFav(ev){ev.stopPropagation();var ix=favorites.indexOf(g.id);if(ix>=0)favorites.splice(ix,1);else favorites.push(g.id);saveHub();renderGames()}
+          star.addEventListener('click',toggleFav);
+          star.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggleFav(ev)}});
           b.onclick=function(){play(g)};grid.appendChild(b);
         });
         box.appendChild(grid);
@@ -425,6 +482,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   function stopPlay(){cancelAnimationFrame(raf);curGame=null;$('frame').removeAttribute('src');$('play').classList.remove('ext');document.body.classList.remove('playing')}
   function play(g){
     cancelAnimationFrame(raf);cur=g;
+    recent=[g.id].concat(recent.filter(function(id){return id!==g.id})).slice(0,12);saveHub();
     document.body.classList.add('playing');window.scrollTo(0,0);
     $('game-title').textContent=g.name;$('how').textContent=g.how;
     $('play').classList.toggle('ext',!!g.ext);
