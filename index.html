@@ -625,12 +625,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     });
     if(!q&&!map['Pjug files']){groups.push('Pjug files');map['Pjug files']=[]}
     groups.forEach(function(n){
-      var isOpen=!!q||!!openG[n],h=document.createElement('button'),list=map[n];
+      var isOpen=!!q||(Object.prototype.hasOwnProperty.call(openG,n)?!!openG[n]:true),h=document.createElement('button'),list=map[n];
       h.className='grp-h';h.setAttribute('aria-expanded',String(isOpen));
       h.innerHTML='<span></span><span class="cnt"></span><span class="chev"></span>';
       h.children[0].textContent=n;
       h.children[1].textContent=list.length+(list.length===1?' game':' games');
-      h.onclick=function(){openG[n]=!openG[n];renderGames()};
+      h.onclick=(function(groupName,wasOpen){return function(){openG[groupName]=!wasOpen;renderGames()}})(n,isOpen);
       box.appendChild(h);
       if(isOpen){
         var grid=document.createElement('div');grid.className='grp-g';
