@@ -1,0 +1,41 @@
+name: Update games list
+
+on:
+  push:
+    paths:
+      - 'pjug-files/**'
+      - 'Pjug files/**'
+      - 'pjug files/**'
+      - 'games/**'
+      - 'make_games.py'
+      - '.github/workflows/update-games.yml'
+      - '!**/games.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download UGS Files source
+        uses: actions/checkout@v4
+        with:
+          repository: brickyosu/ugs-files-sorted
+          ref: main
+          path: ugs-source
+          fetch-depth: 1
+      - name: Merge UGS files into PJUG files without overwriting
+        run: |
+          mkdir -p pjug-files
+          rsync -a --ignore-existing --exclude='.git' ugs-source/ pjug-files/
+      - name: Generate game list
+        run: python3 make_games.py
+      - name: Commit imported files and game list
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A pjug-files
+          git diff --staged --quiet || (git commit -m "Import UGS files into PJUG files" && git push)
