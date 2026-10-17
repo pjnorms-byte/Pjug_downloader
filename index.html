@@ -240,6 +240,38 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 #hub-tools{margin-bottom:12px}#games{scroll-margin-top:18px}#featured-banner,#player-hub{scroll-margin-top:18px}
 @media(max-width:600px){.main-menu{min-height:0;padding:22px;margin:14px 0 22px;border-radius:18px}.main-menu-art{font-size:1.5rem;gap:3px}.main-menu-art span:nth-child(2){width:62px;height:62px;border-radius:16px}.main-menu-actions{display:grid;grid-template-columns:1fr 1fr}.main-menu-actions button:first-child{grid-column:1/-1}.library-heading{margin-top:20px}}
 
+
+/* Launcher polish: wider library, richer cards, and a resume shelf */
+main{max-width:1280px;padding-top:5vh}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent)}
+.main-menu{min-height:280px;border-radius:24px;border-color:color-mix(in srgb,var(--accent) 24%,var(--line));box-shadow:0 22px 70px rgba(0,0,0,.16)}
+.library-heading{margin-top:30px}
+.library-heading h2{font-size:clamp(1.6rem,3vw,2.3rem);letter-spacing:-.045em;margin:0 0 4px}
+.library-heading p{color:var(--muted);margin:0}
+#search{max-width:none;margin-top:18px}
+#games{margin-top:24px}
+.grp-h{background:color-mix(in srgb,var(--surface) 85%,var(--bg));}
+.grp-g{grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:14px}
+.card{min-height:250px;border-radius:16px;padding:14px;padding-right:44px;background:linear-gradient(155deg,color-mix(in srgb,var(--surface) 95%,var(--accent)),var(--surface) 55%);box-shadow:0 5px 18px rgba(0,0,0,.08)}
+.card:hover{transform:translateY(-5px);box-shadow:0 15px 32px rgba(0,0,0,.18)}
+.cover-art{height:118px;margin:-14px -14px 8px;position:relative;isolation:isolate;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.35),transparent 35%),linear-gradient(135deg,var(--cover-a),var(--cover-b));font-size:3.1rem}
+.cover-art:after{content:"";position:absolute;inset:0;z-index:-1;opacity:.18;background:repeating-linear-gradient(135deg,transparent 0 12px,rgba(255,255,255,.5) 13px 14px,transparent 15px 28px)}
+.card .cn{font-size:1.05rem;letter-spacing:-.025em}
+.card .cd{color:var(--muted);font-size:.84rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;min-height:2.3em}
+.resume-section{margin:30px 0 34px;padding:20px 0 4px}
+.resume-heading{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:14px}
+.resume-heading h2{margin:3px 0;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.04em}
+.resume-heading p{margin:0;color:var(--muted)}
+.resume-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.resume-card{display:flex;align-items:center;gap:12px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--text);text-align:left;font:inherit;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+.resume-card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.14)}
+.resume-cover{width:66px;height:66px;display:grid;place-items:center;flex:none;border-radius:11px;color:white;font-size:1.9rem;background:linear-gradient(135deg,var(--cover-a),var(--cover-b))}
+.resume-info{min-width:0;flex:1}
+.resume-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.resume-sub{display:block;color:var(--muted);font-size:.8rem;margin-top:4px}
+.resume-arrow{font-size:1.2rem;color:var(--accent)}
+@media(max-width:640px){main{padding-top:3vh}.resume-heading{align-items:flex-start;flex-direction:column}.resume-shelf{grid-template-columns:1fr}.grp-g{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}.card{min-height:230px}.cover-art{height:100px}}
+
 </style>
 </head>
 <body>
@@ -258,6 +290,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="main-menu-copy"><div class="eyebrow">YOUR GAME HUB</div><h1>PJUG</h1><p>Pick a game, jump back in, or discover something new.</p>
       <div class="main-menu-actions"><button class="btn" id="menu-play" type="button">▶ Play games</button><button class="chip" id="menu-daily" type="button">✦ Daily game</button><button class="chip" id="menu-profile" type="button">Player hub</button></div>
     </div><div class="main-menu-art" aria-hidden="true"><span>✦</span><span>🎮</span><span>✧</span></div>
+  </section>
+  <section class="resume-section" id="resume-section" aria-label="Continue playing" hidden>
+    <div class="resume-heading"><div><div class="eyebrow">YOUR LIBRARY</div><h2>Jump back in</h2><p>Pick up where you left off.</p></div><button class="chip" id="resume-all" type="button">View recent games →</button></div>
+    <div class="resume-shelf" id="resume-shelf"></div>
   </section>
   <div class="library-heading" id="library-heading"><h2>Game library</h2><p>Search, filter, and launch a game.</p></div>
   <input id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
@@ -665,11 +701,33 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     });
     $('empty').style.display=groups.length?'none':'';
     $('empty').textContent=GAMES.length?'No games match that.':'No games yet. Check back soon.';
+    renderContinuePlaying();
   }
+  function renderContinuePlaying(){
+    var section=$('resume-section'),shelf=$('resume-shelf');
+    if(!section||!shelf)return;
+    shelf.innerHTML='';
+    var picks=recent.map(function(id){return GAMES.find(function(g){return g.id===id})}).filter(Boolean).slice(0,4);
+    section.hidden=!picks.length;
+    picks.forEach(function(g){
+      var palset=[['#3457d5','#a855f7','🎮'],['#047857','#34d399','🟩'],['#b45309','#fbbf24','⚡'],['#be185d','#fb7185','🕹️'],['#0369a1','#67e8f9','🚀'],['#6d28d9','#c4b5fd','✨']],hash=0;
+      for(var i=0;i<g.name.length;i++)hash=(hash*31+g.name.charCodeAt(i)|0);
+      var pal=palset[Math.abs(hash)%palset.length],b=document.createElement('button');
+      b.type='button';b.className='resume-card';b.setAttribute('aria-label','Continue playing '+g.name);
+      var cover=document.createElement('span');cover.className='resume-cover';cover.style.setProperty('--cover-a',pal[0]);cover.style.setProperty('--cover-b',pal[1]);cover.textContent=pal[2];
+      var info=document.createElement('span');info.className='resume-info';
+      var title=document.createElement('span');title.className='resume-title';title.textContent=g.name;
+      var sub=document.createElement('span');sub.className='resume-sub';sub.textContent=g.ext?'Pjug files · Launch again':'PJUG original · Launch again';
+      info.appendChild(title);info.appendChild(sub);
+      var arrow=document.createElement('span');arrow.className='resume-arrow';arrow.textContent='▶';
+      b.appendChild(cover);b.appendChild(info);b.appendChild(arrow);b.onclick=function(game){return function(){play(game)}}(g);shelf.appendChild(b);
+    });
+  }
+  $('resume-all').addEventListener('click',function(){$('[data-view="recent"]').click();$('library-heading').scrollIntoView({behavior:'smooth',block:'start'})});
   function stopPlay(){cancelAnimationFrame(raf);curGame=null;$('frame').removeAttribute('src');$('play').classList.remove('ext');document.body.classList.remove('playing')}
   function play(g){
     cancelAnimationFrame(raf);cur=g;
-    recent=[g.id].concat(recent.filter(function(id){return id!==g.id})).slice(0,12);saveHub();addXP(10);checkAchievements();
+    recent=[g.id].concat(recent.filter(function(id){return id!==g.id})).slice(0,12);saveHub();renderContinuePlaying();addXP(10);checkAchievements();
     document.body.classList.add('playing');window.scrollTo(0,0);
     $('game-title').textContent=g.name;$('how').textContent=g.how;
     $('play').classList.toggle('ext',!!g.ext);
