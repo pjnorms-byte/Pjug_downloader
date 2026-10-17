@@ -18,6 +18,17 @@
 :root[data-theme="sepia"]{--bg:#f3ead7;--surface:#ebe0c8;--line:#d9ccae;--text:#4a3a2a;--muted:#8d7a62;--accent:#7a4a24;--on-accent:#f3ead7;color-scheme:light}
 :root[data-theme="navy"]{--bg:#0b1630;--surface:#11204a;--line:#1d3166;--text:#dfe8ff;--muted:#7f93c4;--accent:#6ea8ff;--on-accent:#0b1630}
 :root[data-theme="halloween"]{--bg:#130b0b;--surface:#1f1212;--line:#3a1f14;--text:#f5e8d6;--muted:#a78b6e;--accent:#ff7a1a;--on-accent:#130b0b}
+
+:root[data-theme="forest"]{--bg:#0c1912;--surface:#14271c;--line:#294b35;--text:#e2f5e8;--muted:#88b99a;--accent:#55b879;--on-accent:#08150d}
+:root[data-theme="ocean"]{--bg:#071b26;--surface:#0d2a3a;--line:#1b4b5e;--text:#e1f7ff;--muted:#79b5c8;--accent:#28b8c9;--on-accent:#06202a}
+:root[data-theme="sunset"]{--bg:#26121d;--surface:#391b2b;--line:#653047;--text:#fff0f2;--muted:#d39aaa;--accent:#ff6b8a;--on-accent:#2b101b}
+:root[data-theme="lavender"]{--bg:#19152b;--surface:#25203e;--line:#443765;--text:#f0ebff;--muted:#b0a4d8;--accent:#b39aff;--on-accent:#20163c}
+:root[data-theme="rose"]{--bg:#2b151d;--surface:#3c202b;--line:#633644;--text:#fff0f4;--muted:#d3a0af;--accent:#ff8fb1;--on-accent:#321522}
+:root[data-theme="matrix"]{--bg:#050b07;--surface:#0b160d;--line:#1b4225;--text:#d9ffe2;--muted:#75b888;--accent:#39ff88;--on-accent:#041009}
+:root[data-theme="ice"]{--bg:#101d29;--surface:#1a2b3b;--line:#36536a;--text:#edf8ff;--muted:#9ab9d0;--accent:#a7e7ff;--on-accent:#10202b}
+:root[data-theme="midnight"]{--bg:#101022;--surface:#1b1b38;--line:#37375e;--text:#ededff;--muted:#9999cc;--accent:#8b7bff;--on-accent:#15132c}
+:root[data-theme="copper"]{--bg:#211711;--surface:#33231a;--line:#5a3d2b;--text:#fff0e2;--muted:#c6a184;--accent:#d88b52;--on-accent:#28180f}
+
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
@@ -108,6 +119,16 @@ select{-webkit-appearance:none;appearance:none;background-color:var(--bg);backgr
 /* game titles: keep long names inside their cards */
 .cn{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+
+#suggestions{position:fixed;right:22px;top:82px;z-index:30;width:min(410px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow:auto;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 50px rgba(0,0,0,.35);display:none}
+#suggestions.open{display:block;animation:pop .22s ease-out both}
+#suggestions h2{margin:0;font-size:1.2rem;letter-spacing:-.03em}
+#suggestions p{margin:0 0 14px;color:var(--muted);font-size:.9rem;line-height:1.45}
+#suggestions label{display:block;margin:12px 0 6px;font-weight:700;font-size:.9rem}
+#suggestions input,#suggestions textarea{display:block;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font:inherit;resize:vertical}
+#suggestions-status{min-height:1em}
+@media(max-width:520px){#suggestions{right:12px;top:72px;width:calc(100vw - 24px);max-height:calc(100vh - 90px)}header .row{gap:5px}header .icon-btn{padding:7px 9px;font-size:.82rem}}
+
 /* Floating music cube and compact player */
 #music{position:fixed;left:22px;bottom:88px;z-index:30;width:min(370px,calc(100vw - 32px));margin:0;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 50px rgba(0,0,0,.35);display:none}
 #music.open{display:block;animation:pop .22s ease-out both}
@@ -169,6 +190,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <header>
   <span class="mark">pjug</span>
   <div class="row" style="justify-content:flex-end">
+    <button class="icon-btn" id="open-suggestions" aria-controls="suggestions" aria-expanded="false">Suggestions</button>
     <button class="icon-btn" id="open-music" aria-controls="music" aria-expanded="false">Music</button>
     <button class="icon-btn" id="open-settings" aria-haspopup="dialog">Settings</button>
   </div>
@@ -204,6 +226,18 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button class="btn" type="submit">Load Spotify</button>
   </form>
   <iframe id="spotify-frame" title="Spotify music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+</section>
+<section id="suggestions" aria-label="Send a suggestion" aria-hidden="true">
+  <div class="music-top"><h2>Suggestions</h2><button class="icon-btn" id="close-suggestions" aria-label="Close suggestions">×</button></div>
+  <p>Have an idea for PJUG? Share it here. Suggestions are checked for profanity before your email app opens.</p>
+  <form id="suggestion-form">
+    <label for="suggestion-title">Title</label>
+    <input id="suggestion-title" maxlength="90" placeholder="Short suggestion title" required>
+    <label for="suggestion-body">Your suggestion</label>
+    <textarea id="suggestion-body" maxlength="2000" rows="5" placeholder="Describe your idea…" required></textarea>
+    <p id="suggestion-status" aria-live="polite"></p>
+    <button class="btn" type="submit">Send suggestion by email</button>
+  </form>
 </section>
 <button id="music-cube" type="button" aria-label="Open music player" aria-controls="music" aria-expanded="false"><span aria-hidden="true">♫</span></button>
 
@@ -255,7 +289,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     {id:"dark",name:"Dark",c:"#141414"},
     {id:"sepia",name:"Sepia",c:"#f3ead7"},
     {id:"navy",name:"Navy",c:"#0b1630"},
-    {id:"halloween",name:"Halloween",c:"#ff7a1a"}
+    {id:"halloween",name:"Halloween",c:"#ff7a1a"},
+    {id:"forest",name:"Forest",c:"#55b879"},
+    {id:"ocean",name:"Ocean",c:"#28b8c9"},
+    {id:"sunset",name:"Sunset",c:"#ff6b8a"},
+    {id:"lavender",name:"Lavender",c:"#b39aff"},
+    {id:"rose",name:"Rose",c:"#ff8fb1"},
+    {id:"matrix",name:"Matrix",c:"#39ff88"},
+    {id:"ice",name:"Ice",c:"#a7e7ff"},
+    {id:"midnight",name:"Midnight",c:"#8b7bff"},
+    {id:"copper",name:"Copper",c:"#d88b52"}
   ];
   var DEFAULTS={theme:"dark",enabled:true,keys:["`"]};
   var S=load();
@@ -391,6 +434,31 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   $('music-cube').addEventListener('click',function(){toggleMusic()});
   $('close-music').addEventListener('click',function(){toggleMusic(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')toggleMusic(false)});
+  function toggleSuggestions(force){
+    var box=$('suggestions'),isOpen=typeof force==='boolean'?force:!box.classList.contains('open');
+    box.classList.toggle('open',isOpen);box.setAttribute('aria-hidden',String(!isOpen));
+    $('open-suggestions').setAttribute('aria-expanded',String(isOpen));
+  }
+  $('open-suggestions').addEventListener('click',function(){toggleSuggestions()});
+  $('close-suggestions').addEventListener('click',function(){toggleSuggestions(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')toggleSuggestions(false)});
+  $('suggestion-form').addEventListener('submit',function(e){
+    e.preventDefault();
+    var title=$('suggestion-title').value.trim(),body=$('suggestion-body').value.trim(),status=$('suggestion-status');
+    var combined=title+' '+body;
+    if(!title||!body){status.textContent='Please fill in both fields.';return}
+    if(combined.length<12){status.textContent='Please add a little more detail.';return}
+    /* Basic local profanity filter. This is not an AI moderation service. */
+    var blocked=/\b(fuck(?:er|ing|ed|s)?|shit(?:ty|ting|s)?|bitch(?:es)?|asshole|motherfucker|cunt|dickhead|piss off|nigger|faggot)\b/i;
+    if(blocked.test(combined)||/(.)\1{8,}/i.test(combined)){
+      status.textContent='Please remove profanity or abusive language and try again.';return;
+    }
+    var subject='PJUG suggestion: '+title;
+    var mail='mailto:patnorman@bmchsd.org?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent('PJUG suggestion\n\nTitle: '+title+'\n\n'+body);
+    status.textContent='Opening your email app with the suggestion. Review it and press Send there.';
+    window.location.href=mail;
+  });
+
   /* Spotify embed player: works with public Spotify share links */
   $('spotify-form').addEventListener('submit',function(e){
     e.preventDefault();
