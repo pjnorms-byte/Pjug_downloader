@@ -108,14 +108,20 @@ select{-webkit-appearance:none;appearance:none;background-color:var(--bg);backgr
 /* game titles: keep long names inside their cards */
 .cn{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* Spotify player */
-#music{margin:42px 0 12px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
-#music h2{margin:0 0 8px;font-size:1.3rem;letter-spacing:-.03em}
+/* Floating music cube and compact player */
+#music{position:fixed;left:22px;bottom:88px;z-index:30;width:min(370px,calc(100vw - 32px));margin:0;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 50px rgba(0,0,0,.35);display:none}
+#music.open{display:block;animation:pop .22s ease-out both}
+#music .music-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+#music h2{margin:0;font-size:1.2rem;letter-spacing:-.03em}
 #music p{margin:0 0 14px;color:var(--muted);font-size:.9rem;line-height:1.45}
-#spotify-url{min-width:0;flex:1;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font:inherit}
+#spotify-url{min-width:0;flex:1;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font:inherit}
 #spotify-frame{display:none;width:100%;height:152px;border:0;border-radius:12px;margin-top:14px}
 #spotify-frame.loaded{display:block}
-@media(max-width:520px){#music{padding:16px}#music .row{align-items:stretch}#spotify-url{flex-basis:100%}}
+#music-cube{position:fixed;left:22px;bottom:22px;z-index:31;width:54px;height:54px;display:grid;place-items:center;border:1px solid var(--line);border-radius:13px;background:var(--accent);color:var(--on-accent);box-shadow:0 8px 26px rgba(0,0,0,.3);font-size:28px;cursor:pointer;transition:transform .2s,border-radius .2s}
+#music-cube:hover{transform:translateY(-3px) rotate(-3deg);border-radius:17px}
+#music-cube:active{transform:scale(.94)}
+#music-cube span{line-height:1}
+@media(max-width:520px){#music{left:12px;bottom:78px;width:calc(100vw - 24px);padding:15px}#music .row{align-items:stretch}#spotify-url{flex-basis:100%}#music-cube{left:14px;bottom:14px;width:50px;height:50px}}
 
 .cd{color:var(--muted);font-size:.9rem}
 #play{display:none;position:relative;z-index:1;max-width:560px;margin:0 auto;padding:8px 24px 64px}
@@ -150,7 +156,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <canvas id="dust" aria-hidden="true"></canvas>
 <header>
   <span class="mark">pjug</span>
-  <button class="icon-btn" id="open-settings" aria-haspopup="dialog">Settings</button>
+  <div class="row" style="justify-content:flex-end">
+    <button class="icon-btn" id="open-music" aria-controls="music" aria-expanded="false">Music</button>
+    <button class="icon-btn" id="open-settings" aria-haspopup="dialog">Settings</button>
+  </div>
 </header>
 
 <main>
@@ -158,8 +167,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <input id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
   <p class="empty" id="empty">No games yet. Check back soon.</p>
   <div id="games"></div>
-<section id="music" aria-label="Music player">
-  <h2>Music player</h2>
+<section id="music" aria-label="Music player" aria-hidden="true">
+  <div class="music-top"><h2>Music player</h2><button class="icon-btn" id="close-music" aria-label="Close music player">×</button></div>
   <p>Paste a Spotify song, album, or playlist link to play it here. Spotify may ask you to sign in.</p>
   <form id="spotify-form" class="row">
     <input id="spotify-url" type="url" placeholder="Paste Spotify link…" aria-label="Spotify song, album, or playlist link" required>
@@ -167,6 +176,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </form>
   <iframe id="spotify-frame" title="Spotify music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 </section>
+<button id="music-cube" type="button" aria-label="Open music player" aria-controls="music" aria-expanded="false"><span aria-hidden="true">♫</span></button>
 
 </main>
 
@@ -334,6 +344,17 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   });
 
   
+  function toggleMusic(force){
+    var box=$('music'),open=typeof force==='boolean'?force:!box.classList.contains('open');
+    box.classList.toggle('open',open);
+    box.setAttribute('aria-hidden',String(!open));
+    $('open-music').setAttribute('aria-expanded',String(open));
+    $('music-cube').setAttribute('aria-expanded',String(open));
+  }
+  $('open-music').addEventListener('click',function(){toggleMusic()});
+  $('music-cube').addEventListener('click',function(){toggleMusic()});
+  $('close-music').addEventListener('click',function(){toggleMusic(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')toggleMusic(false)});
   /* Spotify embed player: works with public Spotify share links */
   $('spotify-form').addEventListener('submit',function(e){
     e.preventDefault();
