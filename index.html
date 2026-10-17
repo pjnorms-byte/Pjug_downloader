@@ -183,6 +183,43 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .field{margin-bottom:12px}
 .field label{display:block;margin-bottom:6px;font-size:.9rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}h1{-webkit-text-fill-color:var(--text)}}
+
+/* PJUG platform features */
+.platform-section{margin:28px 0;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:18px}
+.platform-section h2,.platform-section h3{margin:0 0 10px;letter-spacing:-.03em}
+.platform-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.platform-card{min-width:0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.platform-card p{color:var(--muted);font-size:.9rem;line-height:1.45;margin:6px 0 12px}
+.featured{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:160px;background:radial-gradient(circle at 85% 15%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 40%),var(--surface)}
+.featured .eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.featured h2{font-size:clamp(1.5rem,4vw,2.3rem);margin:6px 0}
+.featured p{color:var(--muted);margin:0 0 14px}
+.featured-mark{font-size:clamp(3rem,9vw,6rem);opacity:.8;line-height:1}
+.profile-line{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.avatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-size:1.4rem;font-weight:800;flex:none}
+.profile-name{font-weight:800;font-size:1.1rem;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.xp-track{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.xp-fill{height:100%;width:0;background:var(--accent);transition:width .25s}
+.mini-label{font-size:.8rem;color:var(--muted)}
+.platform-card input,.platform-card select,.platform-card textarea{width:100%;min-width:0;margin:5px 0 10px;padding:10px 12px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:9px;font:inherit}
+.platform-card input[type=color]{height:42px;padding:4px}
+.platform-actions{display:flex;gap:8px;flex-wrap:wrap}
+.platform-actions .btn,.platform-actions .chip{font-size:.88rem}
+.rating-row{display:flex;align-items:center;gap:4px;margin-top:8px}
+.rating-star{border:0;background:none;color:var(--muted);font-size:1.3rem;padding:2px;cursor:pointer}
+.rating-star.active{color:var(--accent)}
+.achievement-list{display:flex;flex-wrap:wrap;gap:8px}
+.achievement{padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:.84rem;color:var(--muted)}
+.achievement.unlocked{color:var(--text);border-color:var(--accent)}
+.request-list{display:grid;gap:8px}
+.request-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px}
+.request-title{min-width:0;flex:1;overflow-wrap:anywhere;font-weight:700}
+.request-vote{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:var(--bg);color:var(--text);cursor:pointer}
+#game-category{width:auto;min-width:145px}
+#play .bar-actions{display:flex;gap:8px;align-items:center}
+@media(max-width:640px){.platform-grid{grid-template-columns:1fr}.platform-section{padding:12px;margin:18px 0}.featured{align-items:flex-start}.featured-mark{font-size:3rem}.hub-actions{gap:7px}#game-category{width:100%}#play{padding:8px 12px 48px}#frame{height:65vh}header{padding:14px 12px;gap:10px}header .mark{font-size:1.25rem}header .row{justify-content:flex-end;flex-wrap:wrap}main{padding:8vh 14px 48px}}
+@media(max-width:380px){header .icon-btn{padding:6px 7px;font-size:.75rem}.grp-g{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}.card{padding:15px;padding-right:42px}.cn{font-size:1.1rem}}
+
 </style>
 </head>
 <body>
@@ -206,6 +243,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button class="chip" data-view="recent" aria-pressed="false">Recently played</button>
     </div>
     <div class="hub-actions">
+      <label class="sort-label" for="game-category">Category</label><select id="game-category" aria-label="Filter games"><option value="all">All games</option><option value="original">PJUG originals</option><option value="external">Pjug files</option></select>
       <label class="sort-label" for="game-sort">Sort</label>
       <select id="game-sort" aria-label="Sort games">
         <option value="default">Default</option>
@@ -216,6 +254,50 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
     <p class="hub-note" id="hub-note" aria-live="polite"></p>
   </div>
+
+  <section class="platform-section featured" id="featured-banner" aria-label="Featured daily game">
+    <div><div class="eyebrow">PJUG daily pick</div><h2 id="daily-title">Today's featured game</h2><p id="daily-desc">A new game to discover every day.</p><button class="btn" id="daily-play" type="button">Play today's game</button></div>
+    <div class="featured-mark" aria-hidden="true">✦</div>
+  </section>
+  <section class="platform-section" aria-label="Player hub">
+    <h2>Player hub</h2>
+    <p class="hub-note">Your profile, progress, custom look, and community picks are saved in this browser.</p>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <h3>Player profile</h3>
+        <div class="profile-line"><div class="avatar" id="profile-avatar">P</div><div style="min-width:0;flex:1"><div class="profile-name" id="profile-display-name">Player</div><div class="mini-label" id="profile-level">Level 1 · 0 XP</div></div></div>
+        <label class="mini-label" for="profile-name">Display name</label><input id="profile-name" maxlength="24" placeholder="Choose a player name">
+        <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div><div class="mini-label" id="xp-caption">0 / 100 XP to next level</div>
+        <p>Earn XP by launching games and discovering achievements. Progress is stored on this device.</p>
+      </div>
+      <div class="platform-card">
+        <h3>Theme creator</h3><p>Make your own accent color while keeping the current PJUG theme.</p>
+        <label class="mini-label" for="custom-accent">Custom accent</label><input id="custom-accent" type="color" value="#8b7bff">
+        <div class="platform-actions"><button class="btn" id="apply-custom-theme" type="button">Apply color</button><button class="chip" id="reset-custom-theme" type="button">Reset</button></div>
+        <p id="theme-status" aria-live="polite"></p>
+      </div>
+      <div class="platform-card">
+        <h3>Secret achievements</h3><p>Keep playing to uncover hidden milestones.</p><div class="achievement-list" id="achievement-list"></div>
+      </div>
+      <div class="platform-card">
+        <h3>Community ratings</h3><p>Rate a game from one to five stars. Ratings on this version are saved locally in your browser, not shared across visitors.</p>
+        <label class="mini-label" for="rating-game">Choose a game</label><select id="rating-game"></select>
+        <div class="rating-row" id="rating-stars" role="group" aria-label="Rate selected game"></div><div class="mini-label" id="rating-summary"></div>
+      </div>
+      <div class="platform-card">
+        <h3>Game request voting</h3><p>Suggest a game and vote for requests. This demo list is local to this browser; shared community voting needs a backend.</p>
+        <form id="request-form"><label class="mini-label" for="request-name">Game to add</label><input id="request-name" maxlength="80" placeholder="Game name or link" required><button class="btn" type="submit">Submit request</button></form>
+        <div class="request-list" id="request-list" style="margin-top:12px"></div>
+      </div>
+      <div class="platform-card">
+        <h3>Quick controls</h3><p>Shortcuts work when you're not typing in a field.</p>
+        <div class="mini-label">/ Search · R Random game · F Fullscreen · Esc Back</div>
+        <div class="platform-actions" style="margin-top:12px"><button class="btn" id="fullscreen-game" type="button">Fullscreen game</button><button class="chip" id="export-profile" type="button">Export profile</button></div>
+        <p id="shortcut-status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
   <p class="empty" id="empty">No games yet. Check back soon.</p>
   <div id="games"></div>
 <section id="music" aria-label="Music player" aria-hidden="true">
@@ -244,7 +326,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 </main>
 
 <section id="play" aria-label="Game">
-  <div class="bar"><h2 id="game-title"></h2><button class="icon-btn" id="back">Back</button></div>
+  <div class="bar"><h2 id="game-title"></h2><div class="bar-actions"><button class="icon-btn" id="fullscreen-button" type="button">Fullscreen</button><button class="icon-btn" id="back">Back</button></div></div>
   <canvas id="game" width="480" height="360"></canvas>
   <iframe id="frame" title="Game" allowfullscreen allow="fullscreen; gamepad; autoplay"></iframe>
   <p class="how" id="how"></p>
@@ -395,6 +477,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   $("search").addEventListener("input",renderGames);
   document.querySelectorAll('[data-view]').forEach(function(b){b.addEventListener('click',function(){gameView=this.getAttribute('data-view');renderGames()})});
   $('game-sort').addEventListener('change',renderGames);
+  $('game-category').addEventListener('change',renderGames);
   $('random-game').addEventListener('click',function(){
     var q=$('search').value.trim().toLowerCase(),pool=GAMES.filter(function(g){return !q||g.name.toLowerCase().indexOf(q)>=0});
     if(!pool.length){$('hub-note').textContent='No games match your search.';return}
@@ -509,11 +592,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     var groups=[],map={},pool=GAMES.slice();
     if(gameView==='favorites')pool=pool.filter(function(g){return favorites.indexOf(g.id)>=0});
     if(gameView==='recent')pool=recent.map(function(id){return GAMES.find(function(g){return g.id===id})}).filter(Boolean);
+    var category=$('game-category').value;
+    if(category==='original')pool=pool.filter(function(g){return !g.ext});
+    if(category==='external')pool=pool.filter(function(g){return !!g.ext});
     var sort=$('game-sort').value;
     if(sort==='az')pool.sort(function(a,b){return a.name.localeCompare(b.name)});
     if(sort==='za')pool.sort(function(a,b){return b.name.localeCompare(a.name)});
     pool.forEach(function(g){
-      if(q&&g.name.toLowerCase().indexOf(q)<0)return;
+      if(q&&g.name.toLowerCase().indexOf(q)<0&&String(g.desc||'').toLowerCase().indexOf(q)<0)return;
       var n=g.group||(g.ext?'Pjug files':'PJUG original');
       if(!map[n]){map[n]=[];groups.push(n)}
       map[n].push(g);
@@ -550,7 +636,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   function stopPlay(){cancelAnimationFrame(raf);curGame=null;$('frame').removeAttribute('src');$('play').classList.remove('ext');document.body.classList.remove('playing')}
   function play(g){
     cancelAnimationFrame(raf);cur=g;
-    recent=[g.id].concat(recent.filter(function(id){return id!==g.id})).slice(0,12);saveHub();
+    recent=[g.id].concat(recent.filter(function(id){return id!==g.id})).slice(0,12);saveHub();addXP(10);checkAchievements();
     document.body.classList.add('playing');window.scrollTo(0,0);
     $('game-title').textContent=g.name;$('how').textContent=g.how;
     $('play').classList.toggle('ext',!!g.ext);
@@ -877,6 +963,77 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     }catch(err){}
   });
   renderGames();
+
+
+  /* Local-first player platform features. Shared ratings/votes require a backend. */
+  var profile={name:'Player',xp:0,plays:0,customAccent:''},ratings={},requests=[],achievements={};
+  function readLocal(key,fallback){try{var v=JSON.parse(localStorage.getItem(key));return v==null?fallback:v}catch(e){return fallback}}
+  function writeLocal(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch(e){}}
+  profile=readLocal('pjug:profile',profile);ratings=readLocal('pjug:ratings',{});requests=readLocal('pjug:requests',[]);achievements=readLocal('pjug:achievements',{});
+  if(!Array.isArray(requests))requests=[];
+  function level(){return Math.floor(Math.max(0,profile.xp||0)/100)+1}
+  function renderProfile(){
+    $('profile-name').value=profile.name||'Player';$('profile-display-name').textContent=profile.name||'Player';
+    $('profile-avatar').textContent=(profile.name||'P').trim().charAt(0).toUpperCase()||'P';
+    $('profile-level').textContent='Level '+level()+' · '+(profile.xp||0)+' XP';
+    $('xp-fill').style.width=((profile.xp||0)%100)+'%';
+    $('xp-caption').textContent=((profile.xp||0)%100)+' / 100 XP to next level · '+(profile.plays||0)+' games launched';
+    if(profile.customAccent){document.documentElement.style.setProperty('--accent',profile.customAccent);$('custom-accent').value=profile.customAccent}
+  }
+  function addXP(n){profile.xp=(profile.xp||0)+n;profile.plays=(profile.plays||0)+1;writeLocal('pjug:profile',profile);renderProfile()}
+  $('profile-name').addEventListener('change',function(){profile.name=this.value.trim().slice(0,24)||'Player';writeLocal('pjug:profile',profile);renderProfile()});
+  $('apply-custom-theme').addEventListener('click',function(){profile.customAccent=$('custom-accent').value;document.documentElement.style.setProperty('--accent',profile.customAccent);writeLocal('pjug:profile',profile);$('theme-status').textContent='Custom accent applied and saved.'});
+  $('reset-custom-theme').addEventListener('click',function(){profile.customAccent='';document.documentElement.style.removeProperty('--accent');writeLocal('pjug:profile',profile);$('theme-status').textContent='Using the selected theme accent again.'});
+  var ACHS=[{id:'first',name:'First Steps',hint:'Launch your first game',test:function(){return (profile.plays||0)>=1}},{id:'explorer',name:'Explorer',hint:'Launch 10 games',test:function(){return (profile.plays||0)>=10}},{id:'collector',name:'Collector',hint:'Save a game as a favorite',test:function(){return favorites.length>=1}},{id:'daily',name:'Daily Discovery',hint:'Play today's daily pick',test:function(){return readLocal('pjug:dailyPlayed','')===new Date().toDateString()}},{id:'voter',name:'Voice of PJUG',hint:'Vote on a game request',test:function(){return requests.some(function(r){return r.voted})}}];
+  function checkAchievements(){
+    ACHS.forEach(function(a){if(!achievements[a.id]&&a.test()){achievements[a.id]=true;writeLocal('pjug:achievements',achievements);$('hub-note').textContent='Achievement unlocked: '+a.name+'!'}});renderAchievements();
+  }
+  function renderAchievements(){
+    var box=$('achievement-list');box.innerHTML='';
+    ACHS.forEach(function(a){var b=document.createElement('div');b.className='achievement'+(achievements[a.id]?' unlocked':'');b.textContent=achievements[a.id?'id':'id']?a.name+' ✓':'🔒 Secret achievement';b.title=achievements[a.id]?a.hint:'Keep exploring to reveal this achievement.';box.appendChild(b)});
+  }
+  function renderDaily(){
+    if(!GAMES.length)return;var day=Math.floor(Date.now()/86400000),g=GAMES[(day%GAMES.length+GAMES.length)%GAMES.length];
+    $('daily-title').textContent=g.name;$('daily-desc').textContent=g.desc||'Try this game picked for today.';
+    $('daily-play').onclick=function(){writeLocal('pjug:dailyPlayed',new Date().toDateString());addXP(15);checkAchievements();play(g)};
+  }
+  function renderRatingOptions(){
+    var sel=$('rating-game'),previous=sel.value;sel.innerHTML='';
+    GAMES.forEach(function(g){var o=document.createElement('option');o.value=g.id;o.textContent=g.name;sel.appendChild(o)});
+    if(GAMES.some(function(g){return g.id===previous}))sel.value=previous;renderRatingStars();
+  }
+  function renderRatingStars(){
+    var id=$('rating-game').value,box=$('rating-stars');box.innerHTML='';
+    for(var n=1;n<=5;n++){(function(v){var b=document.createElement('button');b.type='button';b.className='rating-star'+((ratings[id]||0)>=v?' active':'');b.textContent=(ratings[id]||0)>=v?'★':'☆';b.setAttribute('aria-label','Rate '+v+' out of 5');b.onclick=function(){ratings[id]=v;writeLocal('pjug:ratings',ratings);renderRatingStars()};box.appendChild(b)})(n)}
+    $('rating-summary').textContent=ratings[id]?'Your rating: '+ratings[id]+' / 5':'Not rated yet';
+  }
+  $('rating-game').addEventListener('change',renderRatingStars);
+  function renderRequests(){
+    var box=$('request-list');box.innerHTML='';
+    requests.sort(function(a,b){return b.votes-a.votes});
+    if(!requests.length){var p=document.createElement('p');p.className='mini-label';p.textContent='No requests yet — add the first one.';box.appendChild(p)}
+    requests.forEach(function(r,i){var row=document.createElement('div');row.className='request-item';var title=document.createElement('div');title.className='request-title';title.textContent=r.name;var vote=document.createElement('button');vote.className='request-vote';vote.type='button';vote.textContent='▲ '+r.votes;vote.setAttribute('aria-label','Vote for '+r.name);vote.onclick=function(){if(r.voted)return;r.voted=true;r.votes++;writeLocal('pjug:requests',requests);renderRequests();checkAchievements()};if(r.voted){vote.disabled=true;vote.textContent='✓ '+r.votes}row.appendChild(title);row.appendChild(vote);box.appendChild(row)});
+  }
+  $('request-form').addEventListener('submit',function(e){e.preventDefault();var name=$('request-name').value.trim();if(name.length<2)return;if(requests.some(function(r){return r.name.toLowerCase()===name.toLowerCase()})){$('request-name').setCustomValidity('That request already exists.');$('request-name').reportValidity();return}$('request-name').setCustomValidity('');requests.unshift({name:name,votes:0,voted:false});writeLocal('pjug:requests',requests);$('request-name').value='';renderRequests()});
+  $('request-name').addEventListener('input',function(){this.setCustomValidity('')});
+  function toggleFullscreen(){
+    var target=$('play').classList.contains('playing')?$('frame'):$('play');
+    if(!document.body.classList.contains('playing'))target=$('play');
+    if(document.fullscreenElement){document.exitFullscreen().catch(function(){});return}
+    var actual=$('play').classList.contains('ext')&&$('frame').getAttribute('src')?$('frame'):$('game');
+    if(actual.requestFullscreen)actual.requestFullscreen().catch(function(){$('shortcut-status').textContent='Fullscreen is unavailable in this browser.'});
+    else $('shortcut-status').textContent='Fullscreen is unavailable in this browser.';
+  }
+  $('fullscreen-button').addEventListener('click',toggleFullscreen);$('fullscreen-game').addEventListener('click',toggleFullscreen);
+  $('export-profile').addEventListener('click',function(){var data={profile:profile,ratings:ratings,requests:requests,achievements:achievements,favorites:favorites,recent:recent};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pjug-profile.json';a.click();URL.revokeObjectURL(url);$('shortcut-status').textContent='Profile export created.'});
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey)return;var tag=e.target&&e.target.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||e.target.isContentEditable)return;
+    if(e.key==='Escape'&&document.body.classList.contains('playing')){stopPlay();return}
+    if(e.key.toLowerCase()==='r'&&!document.body.classList.contains('playing')){$('random-game').click();return}
+    if(e.key.toLowerCase()==='f'&&document.body.classList.contains('playing')){e.preventDefault();toggleFullscreen()}
+  });
+  renderProfile();renderDaily();renderRatingOptions();renderRequests();renderAchievements();
 
   /* dust */
   (function(){
