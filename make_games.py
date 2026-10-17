@@ -1,12 +1,7 @@
-"""Scans the pjug-files folder and writes pjug-files/games.json for pjug.
+"""Scans the pjug-files folder recursively and writes pjug-files/games.json.
 
-Run:  python make_games.py
-The folder can be named pjug-files or "Pjug files" (any capitalization).
-A game is either:
-  - a single .html file directly inside that folder
-  - a subfolder that has an index.html (or exactly one .html file)
-Names come from the page <title>, or the file/folder name. To rename a game or add a
-description, edit games/games.json by hand; your edits are kept on the next run.
+Existing files are preserved when importing UGS files. Existing names and descriptions
+in games.json are retained for matching paths; newly discovered HTML games are added.
 """
 import json
 import os
@@ -23,7 +18,7 @@ def find_dir():
     old = os.path.join(ROOT, "games")
     if os.path.isdir(old):
         return old
-    os.makedirs(os.path.join(ROOT, "pjug-files"))
+    os.makedirs(os.path.join(ROOT, "pjug-files"), exist_ok=True)
     return os.path.join(ROOT, "pjug-files")
 
 
@@ -43,7 +38,7 @@ def title_of(path, fallback):
         m = re.search(r"<title[^>]*>(.*?)</title>", head, re.I | re.S)
         if m:
             t = re.sub(r"\s+", " ", m.group(1)).strip()
-            if t.lower() not in GENERIC and len(t) <= 40:
+            if t.lower() not in GENERIC and len(t) <= 80:
                 return t
     except OSError:
         pass
@@ -52,22 +47,15 @@ def title_of(path, fallback):
 
 def find():
     found = []
-    for name in sorted(os.listdir(GAMES), key=str.lower):
-        if name.startswith(".") or name == "games.json":
-            continue
-        p = os.path.join(GAMES, name)
-        if os.path.isdir(p):
-            if os.path.isfile(os.path.join(p, "index.html")):
-                entry = "index.html"
-            else:
-                htmls = [f for f in os.listdir(p) if f.lower().endswith(".html")]
-                if len(htmls) != 1:
-                    print("skipped (no index.html):", name)
-                    continue
-                entry = htmls[0]
-            found.append((name + "/" + entry, os.path.join(p, entry), pretty(name)))
-        elif name.lower().endswith(".html"):
-            found.append((name, p, pretty(os.path.splitext(name)[0])))
+    for root, dirs, files in os.walk(GAMES):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        for name in sorted(files, key=str.lower):
+            if name.startswith(".") or name.lower() == "games.json" or not name.lower().endswith(".html"):
+                continue
+            full = os.path.join(root, name)
+            rel = os.path.relpath(full, GAMES).replace(os.sep, "/")
+            found.append((rel, full, pretty(os.path.splitext(name)[0])))
+    found.sort(key=lambda item: item[0].lower())
     return found
 
 
@@ -89,7 +77,7 @@ def main():
         })
     for path, entry in old.items():
         if path.lower().startswith(("http://", "https://")):
-            out.append(entry)  # games hosted elsewhere: keep your hand-added entries
+            out.append(entry)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
         f.write("\n")
