@@ -220,6 +220,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 @media(max-width:640px){.platform-grid{grid-template-columns:1fr}.platform-section{padding:12px;margin:18px 0}.featured{align-items:flex-start}.featured-mark{font-size:3rem}.hub-actions{gap:7px}#game-category{width:100%}#play{padding:8px 12px 48px}#frame{height:65vh}header{padding:14px 12px;gap:10px}header .mark{font-size:1.25rem}header .row{justify-content:flex-end;flex-wrap:wrap}main{padding:8vh 14px 48px}}
 @media(max-width:380px){header .icon-btn{padding:6px 7px;font-size:.75rem}.grp-g{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}.card{padding:15px;padding-right:42px}.cn{font-size:1.1rem}}
 
+
+/* Main menu and restored game-first layout */
+.main-menu{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;overflow:hidden;min-height:230px;margin:22px 0 30px;padding:clamp(22px,5vw,42px);border:1px solid var(--line);border-radius:24px;background:radial-gradient(ellipse at 85% 10%,color-mix(in srgb,var(--accent) 34%,transparent),transparent 42%),linear-gradient(125deg,var(--surface),var(--bg))}
+.main-menu-copy{position:relative;z-index:1;max-width:620px}
+.main-menu h1{font-size:clamp(2.7rem,8vw,5rem);line-height:.95;letter-spacing:-.075em;margin:8px 0 12px}
+.main-menu p,.library-heading p{color:var(--muted);margin:0 0 18px}
+.main-menu-actions{display:flex;gap:9px;flex-wrap:wrap}
+.main-menu-art{display:flex;align-items:center;gap:8px;flex:none;font-size:clamp(2rem,5vw,4rem);transform:rotate(-7deg);opacity:.9}
+.main-menu-art span:nth-child(2){display:grid;place-items:center;width:clamp(76px,13vw,142px);height:clamp(76px,13vw,142px);border:1px solid var(--line);border-radius:28px;background:color-mix(in srgb,var(--accent) 16%,var(--surface));box-shadow:0 18px 50px #0002}
+.library-heading{margin:28px 0 12px}.library-heading h2{font-size:1.65rem;margin:0 0 4px;letter-spacing:-.04em}
+#hub-tools{margin-bottom:12px}#games{scroll-margin-top:18px}#featured-banner,#player-hub{scroll-margin-top:18px}
+@media(max-width:600px){.main-menu{min-height:0;padding:22px;margin:14px 0 22px;border-radius:18px}.main-menu-art{font-size:1.5rem;gap:3px}.main-menu-art span:nth-child(2){width:62px;height:62px;border-radius:16px}.main-menu-actions{display:grid;grid-template-columns:1fr 1fr}.main-menu-actions button:first-child{grid-column:1/-1}.library-heading{margin-top:20px}}
+
 </style>
 </head>
 <body>
@@ -234,7 +247,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 </header>
 
 <main>
-  <h1>pjug</h1>
+  <section class="main-menu" id="main-menu" aria-label="PJUG main menu">
+    <div class="main-menu-copy"><div class="eyebrow">YOUR GAME HUB</div><h1>PJUG</h1><p>Pick a game, jump back in, or discover something new.</p>
+      <div class="main-menu-actions"><button class="btn" id="menu-play" type="button">▶ Play games</button><button class="chip" id="menu-daily" type="button">✦ Daily game</button><button class="chip" id="menu-profile" type="button">Player hub</button></div>
+    </div><div class="main-menu-art" aria-hidden="true"><span>✦</span><span>🎮</span><span>✧</span></div>
+  </section>
+  <div class="library-heading" id="library-heading"><h2>Game library</h2><p>Search, filter, and launch a game.</p></div>
   <input id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
   <div id="hub-tools" aria-label="Game library controls">
     <div class="hub-tabs" role="group" aria-label="Game library view">
@@ -255,11 +273,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <p class="hub-note" id="hub-note" aria-live="polite"></p>
   </div>
 
+  <p class="empty" id="empty">No games yet. Check back soon.</p>
+  <div id="games"></div>
+
   <section class="platform-section featured" id="featured-banner" aria-label="Featured daily game">
     <div><div class="eyebrow">PJUG daily pick</div><h2 id="daily-title">Today's featured game</h2><p id="daily-desc">A new game to discover every day.</p><button class="btn" id="daily-play" type="button">Play today's game</button></div>
     <div class="featured-mark" aria-hidden="true">✦</div>
   </section>
-  <section class="platform-section" aria-label="Player hub">
+  <section class="platform-section" id="player-hub" aria-label="Player hub">
     <h2>Player hub</h2>
     <p class="hub-note">Your profile, progress, custom look, and community picks are saved in this browser.</p>
     <div class="platform-grid">
@@ -298,8 +319,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
   </section>
 
-  <p class="empty" id="empty">No games yet. Check back soon.</p>
-  <div id="games"></div>
 <section id="music" aria-label="Music player" aria-hidden="true">
   <div class="music-top"><h2>Music player</h2><button class="icon-btn" id="close-music" aria-label="Close music player">×</button></div>
   <p>Paste a Spotify song, album, or playlist link to play it here. Spotify may ask you to sign in.</p>
@@ -1033,6 +1052,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     if(e.key.toLowerCase()==='r'&&!document.body.classList.contains('playing')){$('random-game').click();return}
     if(e.key.toLowerCase()==='f'&&document.body.classList.contains('playing')){e.preventDefault();toggleFullscreen()}
   });
+  $('menu-play').addEventListener('click',function(){$('library-heading').scrollIntoView({behavior:'smooth',block:'start'});$('search').focus({preventScroll:true})});
+  $('menu-daily').addEventListener('click',function(){$('featured-banner').scrollIntoView({behavior:'smooth',block:'center'})});
+  $('menu-profile').addEventListener('click',function(){$('player-hub').scrollIntoView({behavior:'smooth',block:'start'})});
   renderProfile();renderDaily();renderRatingOptions();renderRequests();renderAchievements();
 
   /* dust */
