@@ -622,7 +622,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           b.firstChild.textContent=g.name;b.children[1].textContent=g.desc;
           var star=b.querySelector('.fav-btn'),isFav=favorites.indexOf(g.id)>=0;
           star.setAttribute('aria-pressed',String(isFav));star.setAttribute('aria-label',(isFav?'Remove from':'Add to')+' favorites: '+g.name);star.textContent=isFav?'★':'☆';
-          function toggleFav(ev){ev.stopPropagation();var ix=favorites.indexOf(g.id);if(ix>=0)favorites.splice(ix,1);else favorites.push(g.id);saveHub();renderGames()}
+          function toggleFav(ev){ev.stopPropagation();var ix=favorites.indexOf(g.id);if(ix>=0)favorites.splice(ix,1);else favorites.push(g.id);saveHub();checkAchievements();renderGames()}
           star.addEventListener('click',toggleFav);
           star.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggleFav(ev)}});
           b.onclick=function(){play(g)};grid.appendChild(b);
