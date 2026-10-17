@@ -990,7 +990,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   }
   function renderAchievements(){
     var box=$('achievement-list');box.innerHTML='';
-    ACHS.forEach(function(a){var b=document.createElement('div');b.className='achievement'+(achievements[a.id]?' unlocked':'');b.textContent=achievements[a.id?'id':'id']?a.name+' ✓':'🔒 Secret achievement';b.title=achievements[a.id]?a.hint:'Keep exploring to reveal this achievement.';box.appendChild(b)});
+    ACHS.forEach(function(a){var b=document.createElement('div');b.className='achievement'+(achievements[a.id]?' unlocked':'');b.textContent=achievements[a.id]?a.name+' ✓':'🔒 Secret achievement';b.title=achievements[a.id]?a.hint:'Keep exploring to reveal this achievement.';box.appendChild(b)});
   }
   function renderDaily(){
     if(!GAMES.length)return;var day=Math.floor(Date.now()/86400000),g=GAMES[(day%GAMES.length+GAMES.length)%GAMES.length];
